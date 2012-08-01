@@ -16,11 +16,10 @@
  *
  * Based on the interactive governor By Mike Chan (mike@android.com)
  * which was adaptated to 2.6.29 kernel by Nadlabak (pavel@doshaska.net)
- * Stability and orthographic patch by Bylos (bylos72@gmail.com)
  *
  * SMP support based on mod by faux123
  *
- * For a general overview of smartass2 see the relevant part in
+ * For a general overview of smartassV2 see the relavent part in
  * Documentation/cpu-freq/governors.txt
  *
  */
@@ -44,7 +43,7 @@
  * towards the ideal frequency and slower after it has passed it. Similarly,
  * lowering the frequency towards the ideal frequency is faster than below it.
  */
-#define DEFAULT_AWAKE_IDEAL_FREQ 806400
+#define DEFAULT_AWAKE_IDEAL_FREQ 576000
 static unsigned int awake_ideal_freq;
 
 /*
@@ -53,7 +52,7 @@ static unsigned int awake_ideal_freq;
  * that practically when sleep_ideal_freq==0 the awake_ideal_freq is used
  * also when suspended).
  */
-#define DEFAULT_SLEEP_IDEAL_FREQ 245760
+#define DEFAULT_SLEEP_IDEAL_FREQ 368640
 static unsigned int sleep_ideal_freq;
 
 /*
@@ -61,21 +60,21 @@ static unsigned int sleep_ideal_freq;
  * Zero disables and causes to always jump straight to max frequency.
  * When below the ideal freqeuncy we always ramp up to the ideal freq.
  */
-#define DEFAULT_RAMP_UP_STEP 128000
+#define DEFAULT_RAMP_UP_STEP 149760
 static unsigned int ramp_up_step;
 
 /*
  * Freqeuncy delta when ramping down below the ideal freqeuncy.
  * Zero disables and will calculate ramp down according to load heuristic.
- * When above the ideal freqeuncy we always ramp down to the ideal freq.
+ * When above the ideal frequency we always ramp down to the ideal freq.
  */
-#define DEFAULT_RAMP_DOWN_STEP 256000
+#define DEFAULT_RAMP_DOWN_STEP 245760
 static unsigned int ramp_down_step;
 
 /*
  * CPU freq will be increased if measured load > max_cpu_load;
  */
-#define DEFAULT_MAX_CPU_LOAD 60
+#define DEFAULT_MAX_CPU_LOAD 50
 static unsigned long max_cpu_load;
 
 /*
@@ -88,21 +87,21 @@ static unsigned long min_cpu_load;
  * The minimum amount of time to spend at a frequency before we can ramp up.
  * Notice we ignore this when we are below the ideal frequency.
  */
-#define DEFAULT_UP_RATE_US 24000;
+#define DEFAULT_UP_RATE_US 48000;
 static unsigned long up_rate_us;
 
 /*
  * The minimum amount of time to spend at a frequency before we can ramp down.
  * Notice we ignore this when we are above the ideal frequency.
  */
-#define DEFAULT_DOWN_RATE_US 49000;
+#define DEFAULT_DOWN_RATE_US 45000;
 static unsigned long down_rate_us;
 
 /*
  * The frequency to set when waking up from sleep.
  * When sleep_ideal_freq=0 this will have no effect.
  */
-#define DEFAULT_SLEEP_WAKEUP_FREQ 806400
+#define DEFAULT_SLEEP_WAKEUP_FREQ 99999999
 static unsigned int sleep_wakeup_freq;
 
 /*
@@ -166,21 +165,17 @@ static int cpufreq_governor_smartass(struct cpufreq_policy *policy,
 static
 #endif
 struct cpufreq_governor cpufreq_gov_smartass2 = {
-	.name = "SmartassV2",
+	.name = "smartassV2",
 	.governor = cpufreq_governor_smartass,
-	.max_transition_latency = 9000000,
+	.max_transition_latency = 10000000,
 	.owner = THIS_MODULE,
 };
 
 inline static void smartass_update_min_max(struct smartass_info_s *this_smartass, struct cpufreq_policy *policy, int suspend) {
 	if (suspend) {
-		this_smartass->ideal_speed = // sleep_ideal_freq; but make sure it obeys the policy min/max
-			policy->max > sleep_ideal_freq ?
-			(sleep_ideal_freq > policy->min ? sleep_ideal_freq : policy->min) : policy->max;
+		this_smartass->ideal_speed = sleep_ideal_freq;
 	} else {
-		this_smartass->ideal_speed = // awake_ideal_freq; but make sure it obeys the policy min/max
-			policy->min < awake_ideal_freq ?
-			(awake_ideal_freq < policy->max ? awake_ideal_freq : policy->max) : policy->min;
+		this_smartass->ideal_speed = awake_ideal_freq;
 	}
 }
 
@@ -371,7 +366,7 @@ static void cpufreq_idle(void)
 		reset_timer(smp_processor_id(), this_smartass);
 }
 
-/* We use the same work function to scale up and down */
+/* We use the same work function to sale up and down */
 static void cpufreq_smartass_freq_change_time_work(struct work_struct *work)
 {
 	unsigned int cpu;
@@ -663,64 +658,6 @@ static struct attribute_group smartass_attr_group = {
 	.name = "smartass",
 };
 
-static void smartass_suspend(int cpu, int suspend)
-{
-	struct smartass_info_s *this_smartass = &per_cpu(smartass_info, smp_processor_id());
-	struct cpufreq_policy *policy = this_smartass->cur_policy;
-	unsigned int new_freq;
-
-	if (!this_smartass->enable)
-		return;
-
-	smartass_update_min_max(this_smartass,policy,suspend);
-	if (!suspend) { // resume at max speed:
-		new_freq = validate_freq(policy,sleep_wakeup_freq);
-
-		dprintk(SMARTASS_DEBUG_JUMPS,"SmartassS: awaking at %d\n",new_freq);
-
-		__cpufreq_driver_target(policy, new_freq,
-					CPUFREQ_RELATION_L);
-	} else {
-		// to avoid wakeup issues with quick sleep/wakeup don't change actual frequency when entering sleep
-		// to allow some time to settle down. Instead we just reset our statistics (and reset the timer).
-		// Eventually, the timer will adjust the frequency if necessary.
-
-		this_smartass->freq_change_time_in_idle =
-			get_cpu_idle_time_us(cpu,&this_smartass->freq_change_time);
-
-		dprintk(SMARTASS_DEBUG_JUMPS,"SmartassS: suspending at %d\n",policy->cur);
-	}
-
-	reset_timer(smp_processor_id(),this_smartass);
-}
-
-static void smartass_early_suspend(struct early_suspend *handler) {
-	int i;
-	printk(KERN_INFO "[smartass2] %s\n", __func__);
-	if (suspended || sleep_ideal_freq==0) // disable behavior for sleep_ideal_freq==0
-		return;
-	suspended = 1;
-	for_each_online_cpu(i)
-		smartass_suspend(i,1);
-}
-
-static void smartass_late_resume(struct early_suspend *handler) {
-	int i;
-	if (!suspended) // already not suspended so nothing to do
-		return;
-	suspended = 0;
-	for_each_online_cpu(i)
-		smartass_suspend(i,0);
-}
-
-static struct early_suspend smartass_power_suspend = {
-	.suspend = smartass_early_suspend,
-	.resume = smartass_late_resume,
-#ifdef CONFIG_MACH_HERO
-	.level = EARLY_SUSPEND_LEVEL_DISABLE_FB + 1,
-#endif
-};
-
 static int cpufreq_governor_smartass(struct cpufreq_policy *new_policy,
 		unsigned int event)
 {
@@ -732,8 +669,6 @@ static int cpufreq_governor_smartass(struct cpufreq_policy *new_policy,
 	case CPUFREQ_GOV_START:
 		if ((!cpu_online(cpu)) || (!new_policy->cur))
 			return -EINVAL;
-		
-		register_early_suspend(&smartass_power_suspend);
 
 		this_smartass->cur_policy = new_policy;
 
@@ -795,18 +730,71 @@ static int cpufreq_governor_smartass(struct cpufreq_policy *new_policy,
 					   &smartass_attr_group);
 			pm_idle = pm_idle_old;
 		}
-
-		unregister_early_suspend(&smartass_power_suspend);
-
 		break;
 	}
 
 	return 0;
 }
 
+static void smartass_suspend(int cpu, int suspend)
+{
+	struct smartass_info_s *this_smartass = &per_cpu(smartass_info, smp_processor_id());
+	struct cpufreq_policy *policy = this_smartass->cur_policy;
+	unsigned int new_freq;
+
+	if (!this_smartass->enable)
+		return;
+
+	smartass_update_min_max(this_smartass,policy,suspend);
+	if (!suspend) { // resume at max speed:
+		new_freq = validate_freq(policy,sleep_wakeup_freq);
+
+		dprintk(SMARTASS_DEBUG_JUMPS,"SmartassS: awaking at %d\n",new_freq);
+
+		__cpufreq_driver_target(policy, new_freq,
+					CPUFREQ_RELATION_L);
+	} else {
+		// to avoid wakeup issues with quick sleep/wakeup don't change actual frequency when entering sleep
+		// to allow some time to settle down. Instead we just reset our statistics (and reset the timer).
+		// Eventually, the timer will adjust the frequency if necessary.
+
+		this_smartass->freq_change_time_in_idle =
+			get_cpu_idle_time_us(cpu,&this_smartass->freq_change_time);
+
+		dprintk(SMARTASS_DEBUG_JUMPS,"SmartassS: suspending at %d\n",policy->cur);
+	}
+
+	reset_timer(smp_processor_id(),this_smartass);
+}
+
+static void smartass_early_suspend(struct early_suspend *handler) {
+	int i;
+	if (suspended || sleep_ideal_freq==0) // disable behavior for sleep_ideal_freq==0
+		return;
+	suspended = 1;
+	for_each_online_cpu(i)
+		smartass_suspend(i,1);
+}
+
+static void smartass_late_resume(struct early_suspend *handler) {
+	int i;
+	if (!suspended) // already not suspended so nothing to do
+		return;
+	suspended = 0;
+	for_each_online_cpu(i)
+		smartass_suspend(i,0);
+}
+
+static struct early_suspend smartass_power_suspend = {
+	.suspend = smartass_early_suspend,
+	.resume = smartass_late_resume,
+#ifdef CONFIG_MACH_HERO
+	.level = EARLY_SUSPEND_LEVEL_DISABLE_FB + 1,
+#endif
+};
+
 static int __init cpufreq_smartass_init(void)
 {
-	unsigned int err;	
 	unsigned int i;
 	struct smartass_info_s *this_smartass;
 	debug_mask = 0;
@@ -844,21 +832,16 @@ static int __init cpufreq_smartass_init(void)
 	}
 
 	// Scale up is high priority
-	up_wq = create_rt_workqueue("ksmartass_up");
-	down_wq = create_workqueue("ksmartass_down");
+	up_wq = alloc_workqueue("ksmartass_up", WQ_HIGHPRI, 1);
+	down_wq = alloc_workqueue("ksmartass_down", 0, 1);
 	if (!up_wq || !down_wq)
-		return -EFAULT;
+		return -ENOMEM;
 
 	INIT_WORK(&freq_scale_work, cpufreq_smartass_freq_change_time_work);
-	
-	err = cpufreq_register_governor(&cpufreq_gov_smartass2);
 
-	if (err) {
-		destroy_workqueue(up_wq);
-		destroy_workqueue(down_wq);
-	}
+	register_early_suspend(&smartass_power_suspend);
 
-	return err;
+	return cpufreq_register_governor(&cpufreq_gov_smartass2);
 }
 
 #ifdef CONFIG_CPU_FREQ_DEFAULT_GOV_SMARTASS2
@@ -876,6 +859,7 @@ static void __exit cpufreq_smartass_exit(void)
 
 module_exit(cpufreq_smartass_exit);
 
-MODULE_AUTHOR ("");
+MODULE_AUTHOR ("Erasmux");
 MODULE_DESCRIPTION ("'cpufreq_smartass2' - A smart cpufreq governor");
 MODULE_LICENSE ("GPL");
+

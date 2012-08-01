@@ -79,3 +79,11 @@ GTAGS
 *.orig
 *~
 \#*#
+<<<<<<< HEAD
+=======
+output/*
+make*.log
+
+*.log
+out
+>>>>>>> 54b5b01... kernel 3.0.8 -> 3.0.9

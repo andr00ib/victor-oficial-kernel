@@ -110,7 +110,11 @@
 #endif
 
 #if defined(CONFIG_TWL4030_CODEC) || defined(CONFIG_TWL4030_CODEC_MODULE) ||\
+<<<<<<< HEAD
 	defined(CONFIG_TWL6040_CORE) || defined(CONFIG_TWL6040_CORE_MODULE)
+=======
+	defined(CONFIG_SND_SOC_TWL6040) || defined(CONFIG_SND_SOC_TWL6040_MODULE)
+>>>>>>> c0d035e... kernel 3.0.11 > 3.0.13
 #define twl_has_codec()	true
 #else
 #define twl_has_codec()	false

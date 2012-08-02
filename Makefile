@@ -1,6 +1,10 @@
 VERSION = 3
 PATCHLEVEL = 0
+<<<<<<< HEAD
 SUBLEVEL = 9
+=======
+SUBLEVEL = 11
+>>>>>>> 63b09f8... kernel 3.0.10 > 3.0.11
 EXTRAVERSION =
 NAME = Sneaky Weasel
 

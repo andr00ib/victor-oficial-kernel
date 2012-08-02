@@ -66,7 +66,11 @@ static struct usb_device_id ath3k_table[] = {
 =======
 	{ USB_DEVICE(0x13d3, 0x3304) },
 	{ USB_DEVICE(0x0930, 0x0215) },
+<<<<<<< HEAD
 >>>>>>> 54b5b01... kernel 3.0.8 -> 3.0.9
+=======
+	{ USB_DEVICE(0x0489, 0xE03D) },
+>>>>>>> b253ea7... Linux kernel 3.0.26 -> 3.0.27
 
 	/* Atheros AR9285 Malbec with sflash firmware */
 	{ USB_DEVICE(0x03F0, 0x311D) },

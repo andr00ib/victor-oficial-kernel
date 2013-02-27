@@ -89,6 +89,12 @@ static struct pll pll2_tbl[] = {
 	{  53, 1, 3, 0 }, /* 1024 MHz */
 	{ 125, 0, 1, 1 }, /* 1200 MHz */
 	{  73, 0, 1, 0 }, /* 1401 MHz */
+        {  83, 0, 1, 0 }, /* 1612 MHz */
+        {  88, 0, 1, 0 }, /* 1708 MHz */
+        {  93, 0, 1, 0 }, /* 1804 MHz */
+        {  95, 0, 1, 0 }, /* 1920 MHz */
+        {  97, 0, 1, 0 }, /* 1996 MHz */
+        {  99, 0, 1, 0 }, /* 2016 MHz */
 };
 
 /* Use negative numbers for sources that can't be enabled/disabled */
@@ -128,6 +134,13 @@ static struct clkctl_acpu_speed acpu_freq_tbl[] = {
 	{ 1, 1024000, PLL_2, 3, 0, UINT_MAX, 1200, VDD_RAW(1200), &pll2_tbl[1]},
 	{ 1, 1200000, PLL_2, 3, 0, UINT_MAX, 1200, VDD_RAW(1200), &pll2_tbl[2]},
 	{ 1, 1401600, PLL_2, 3, 0, UINT_MAX, 1250, VDD_RAW(1250), &pll2_tbl[3]},
+        { 1, 1520000, PLL_2, 3, 0, UINT_MAX, 1275, VDD_RAW(1275), &pll2_tbl[4]},
+        { 1, 1612800, PLL_2, 3, 0, UINT_MAX, 1325, VDD_RAW(1325), &pll2_tbl[5]},
+        { 1, 1708800, PLL_2, 3, 0, UINT_MAX, 1350, VDD_RAW(1350), &pll2_tbl[6]},
+        { 1, 1804800, PLL_2, 3, 0, UINT_MAX, 1375, VDD_RAW(1350), &pll2_tbl[7]},
+        { 1, 1920000, PLL_2, 3, 0, UINT_MAX, 1400, VDD_RAW(1400), &pll2_tbl[8]},
+        { 1, 1996800, PLL_2, 3, 0, UINT_MAX, 1450, VDD_RAW(1450), &pll2_tbl[9]},
+        { 1, 2016000, PLL_2, 3, 0, UINT_MAX, 1450, VDD_RAW(1450), &pll2_tbl[10]},
 	{ 0 }
 };
 
@@ -434,7 +447,11 @@ static inline void setup_cpufreq_table(void) { }
 void __init pll2_fixup(void)
 {
 	struct clkctl_acpu_speed *speed = acpu_freq_tbl;
+      #ifndef CONFIG_ACPUCLOCK_OVERCLOCKING
 	u8 pll2_l = readl_relaxed(PLL2_L_VAL_ADDR) & 0xFF;
+      #else
+         u8 pll2_l = 99;
+      #endif
 
 	for ( ; speed->acpu_clk_khz; speed++) {
 		if (speed->src != PLL_2)

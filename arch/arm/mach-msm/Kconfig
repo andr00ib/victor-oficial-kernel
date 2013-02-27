@@ -1360,6 +1360,12 @@ config MSM_CPU_FREQ_MIN
 
 endif # CPU_FREQ_MSM
 
+config ACPUCLOCK_OVERCLOCKING
+       bool "Enable support for CPU overclocking"
+       default n
+       depends on !PERFLOCK
+       depends on ARCH_MSM7X30
+
 config MSM_CPU_AVS
 	bool "Enable software controlled Adaptive Voltage Scaling (AVS)"
 	depends on (ARCH_MSM_SCORPION && QSD_SVS)

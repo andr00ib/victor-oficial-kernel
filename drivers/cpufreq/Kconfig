@@ -94,20 +94,6 @@ config CPU_FREQ_DEFAULT_GOV_SMARTASS2
 	  help
 	   Use the CPUFreq governor 'smartassV2' as default.
 
-config CPU_FREQ_DEFAULT_GOV_SMOOTHASS
-	   bool "smoothass"
-	   select CPU_FREQ_GOV_SMOOTHASS
-	   select CPU_FREQ_GOV_PERFORMANCE
-	   help
-	     Use the CPUFreq governor 'smoothass' as default.
-	     
-config CPU_FREQ_DEFAULT_GOV_BRAZILIANWAX
-	  bool "brazilianwax"
-	  select CPU_FREQ_GOV_BRAZILIANWAX
-	  select CPU_FREQ_GOV_PERFORMANCE
-	  help
-	    Use the CPUFreq governor 'brazilianwax as default.
-
 config CPU_FREQ_DEFAULT_GOV_SAVAGEDZEN
 	  bool "SavagedZen"
 	  select CPU_FREQ_GOV_SAVAGEDZEN
@@ -126,6 +112,48 @@ config CPU_FREQ_DEFAULT_GOV_LIONHEART
 	select CPU_FREQ_GOV_LIONHEART
 	help
 	  Use the CPUFreq governor 'Lionheart' as default.
+
+config CPU_FREQ_DEFAULT_GOV_WHEATLEY
+	bool "wheatley"
+	select CPU_FREQ_GOV_WHEATLEY
+	select CPU_FREQ_GOV_PERFORMANCE
+	help
+	  Use the CPUFreq governor 'wheatley' as default.
+	  
+config CPU_FREQ_DEFAULT_GOV_LAZY
+	bool "lazy"
+	select CPU_FREQ_GOV_LAZY
+	select CPU_FREQ_GOV_PERFORMANCE
+	help
+	  Use the CPUFreq governor 'lazy' as default.
+
+config CPU_FREQ_DEFAULT_GOV_LAGFREE
+	bool "lagfree"
+	select CPU_FREQ_GOV_LAGFREE
+	help
+	  Use the CPUFreq governor 'lagfree' as default.
+	  
+config CPU_FREQ_DEFAULT_GOV_GALLIMAUFRY
+	bool "gallimaufry"
+	select CPU_FREQ_GOV_GALLIMAUFRY
+	help
+	A modified ondemand governor.
+        This features earlysuspend, hotplugging, a
+        2-phase algo, and tweaks to make it more aggressive.
+
+config CPU_FREQ_DEFAULT_GOV_AGGRESSIVE
+	bool "aggressive"
+	select CPU_FREQ_GOV_AGGRESSIVE
+	help
+	A modified conservative governor.
+        This features earlysuspend, hotplugging,
+        and tweaks to make it more aggressive.
+
+config CPU_FREQ_DEFAULT_GOV_SCARY
+	bool "aggressive"
+	select CPU_FREQ_GOV_SCARY
+	help
+	A modified ondemand governor.
 
 endchoice
 
@@ -183,20 +211,6 @@ config CPU_FREQ_GOV_SMARTASS2
 
 	    If in doubt, say N.
 
-config CPU_FREQ_GOV_SMOOTHASS
-	  tristate "'smoothass' cpufreq governor"
-	  depends on CPU_FREQ
-	  help
-	  smoothass' - a "slightly more agressive smartass" governor!
-	   
-	  If in doubt, say N.
-  
-config CPU_FREQ_GOV_BRAZILIANWAX
-	  tristate "'brazilianwax' cpufreq governor"
-	  depends on CPU_FREQ
-	  help
-	    'brazilianwax' - a "slightly more agressive smart" optimized governor!
-    
 config CPU_FREQ_GOV_SAVAGEDZEN
 	  tristate "'savagedzen' cpufreq governor"
 	  depends on CPU_FREQ
@@ -216,6 +230,40 @@ config CPU_FREQ_GOV_LIONHEART
 	help
 	  'Lionheart' - A brave and agile conservative-based governor.
 
+
+config CPU_FREQ_GOV_GALLIMAUFRY
+	tristate "'gallimaufry' governor"
+  depends on CPU_FREQ
+	help
+	  'gallimaufry' - this governor is a modified ondemand.
+	   If in doubt, say N.
+
+config CPU_FREQ_GOV_AGGRESSIVE
+	tristate "'aggressive' governor"
+  depends on CPU_FREQ
+	help
+	  'aggressive' - this governor is a modified conservative.
+	   If in doubt, say N.
+	   
+config CPU_FREQ_GOV_SCARY
+	tristate "'scary' governor"
+  depends on CPU_FREQ
+	help
+	  'scary' - this governor is a modified ondemand.
+	   If in doubt, say N.
+
+config CPU_FREQ_GOV_WHEATLEY
+	tristate "'wheatley' cpufreq governor"
+	depends on CPU_FREQ
+	
+config CPU_FREQ_GOV_LAZY
+	tristate "'lazy' cpufreq governor"
+	depends on CPU_FREQ
+
+config CPU_FREQ_GOV_LAGFREE
+	tristate "'lagfree' cpufreq policy governor"	
+	help	
+	  'lagfree' - lagfree CPU governor.
 
 config CPU_FREQ_VDD_LEVELS
   bool "CPU Vdd levels sysfs interface"

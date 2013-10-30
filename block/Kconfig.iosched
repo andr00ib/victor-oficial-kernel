@@ -43,6 +43,26 @@ config IOSCHED_SIO
 	    basic merging, trying to keep a minimum overhead. It is aimed
 	    mainly for aleatory access devices (eg: flash devices).
 
+
+config IOSCHED_ROW
+	tristate "ROW I/O scheduler"
+	default y
+	---help---
+	  The ROW I/O scheduler gives priority to READ requests over the
+	  WRITE requests when dispatching, without starving WRITE requests.
+	  Requests are kept in priority queues. Dispatching is done in a RR
+	  manner when the dispatch quantum for each queue is calculated
+	  according to queue priority.
+	  Most suitable for mobile devices.
+
+config IOSCHED_FIOPS
+	tristate "IOPS based I/O scheduler"
+	default n
+	---help---
+	  This is an IOPS based I/O scheduler. It will try to distribute
+          IOPS equally among all processes in the system. It's mainly for
+          Flash based storage.
+
 config IOSCHED_VR
 	  tristate "V(R) I/O scheduler"
 	  default n
@@ -76,7 +96,9 @@ config DEFAULT_IOSCHED
 	default "deadline" if DEFAULT_DEADLINE
 	default "cfq" if DEFAULT_CFQ
 	default "vr" if DEFAULT_VR
-	default "sio" if DEFAULT_SIO          
+	default "sio" if DEFAULT_SIO
+        default "row" if DEFAULT_ROW
+        default "fiops" if DEFAULT_FIOPS          
 
 endmenu
 

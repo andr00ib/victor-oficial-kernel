@@ -1,10 +1,6 @@
 VERSION = 3
 PATCHLEVEL = 0
-<<<<<<< HEAD
-SUBLEVEL = 70
-=======
 SUBLEVEL = 71
->>>>>>> 9f250df... Linux 3.0.71
 EXTRAVERSION =
 NAME = Sneaky Weasel
 
